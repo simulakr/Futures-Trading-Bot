@@ -125,13 +125,46 @@ class ExitStrategy:
 
     def _get_order_status(self, symbol: str, order_id: str) -> str:
         """
-        ccxt standart emir durumlarını döndürür:
-        'open' | 'closed' | 'canceled' | 'expired' | 'rejected' | 'not_found'
+        Emir durumunu sorgular.
+        Binance'te stop-market emirleri fetch_order ile gelmiyor,
+        önce open_orders'da, sonra fapiPrivateGetAllOrders'da aranır.
+        Döner: 'open' | 'closed' | 'canceled' | 'expired' | 'not_found'
         """
-        order = self.client.get_order(symbol, order_id)
-        if order is None:
-            return "not_found"
-        return order.get("status", "unknown")
+        # 1. Açık emirlerde ara
+        open_orders = self.client.get_open_orders(symbol)
+        for o in open_orders:
+            if str(o["id"]) == str(order_id):
+                return o.get("status", "open")
+
+        # 2. Standart emir geçmişinde ara (limit emirler buraya düşer)
+        try:
+            order = self.client.get_order(symbol, order_id)
+            if order:
+                return order.get("status", "unknown")
+        except Exception:
+            pass
+
+        # 3. Stop emirleri için tüm emir geçmişinde ara
+        try:
+            raw_symbol = symbol.replace("/", "").replace(":USDT", "")
+            result = self.client.client.fapiPrivateGetAllOrders({
+                "symbol":  raw_symbol,
+                "orderId": order_id,
+                "limit":   1,
+            })
+            if result:
+                status = result[0].get("status", "unknown")
+                mapping = {
+                    "FILLED":   "closed",
+                    "CANCELED": "canceled",
+                    "NEW":      "open",
+                    "EXPIRED":  "expired",
+                }
+                return mapping.get(status, status.lower())
+        except Exception:
+            pass
+
+        return "not_found"
 
     def cancel_tp_sl_orders(self, symbol: str, oco_pair: Dict) -> None:
         """OCO çiftinin her iki emrini de iptal eder."""
