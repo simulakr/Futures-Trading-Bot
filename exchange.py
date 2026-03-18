@@ -2,6 +2,7 @@ import ccxt
 import logging
 import pandas as pd
 from typing import Dict, List, Optional
+from concurrent.futures import ThreadPoolExecutor
 
 from config import BINANCE_API_KEY, BINANCE_API_SECRET, TESTNET
 
@@ -78,8 +79,10 @@ class BinanceFuturesClient:
         interval: str = "15m",
         limit:    int = 500,
     ) -> Dict[str, Optional[pd.DataFrame]]:
-        """Birden fazla sembol için veri çeker."""
-        return {sym: self.get_ohlcv(sym, interval, limit) for sym in symbols}
+        """Birden fazla sembol için veri paralel çeker."""
+        with ThreadPoolExecutor(max_workers=len(symbols)) as executor:
+            futures = {sym: executor.submit(self.get_ohlcv, sym, interval, limit) for sym in symbols}
+            return {sym: fut.result() for sym, fut in futures.items()}
 
     # ─── Hesap & Kaldıraç ─────────────────────────────────────────────────────
 
