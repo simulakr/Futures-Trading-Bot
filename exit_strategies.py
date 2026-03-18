@@ -125,45 +125,43 @@ class ExitStrategy:
 
     def _get_order_status(self, symbol: str, order_id: str) -> str:
         """
-        Emir durumunu sorgular.
-        Binance'te stop-market emirleri fetch_order ile gelmiyor,
-        önce open_orders'da, sonra fapiPrivateGetAllOrders'da aranır.
-        Döner: 'open' | 'closed' | 'canceled' | 'expired' | 'not_found'
+        Önce normal emirlerde, sonra algo (stop-market) emirlerde arar.
+        Döner: 'open' | 'closed' | 'canceled' | 'not_found'
         """
-        # 1. Açık emirlerde ara
+        # 1. Açık normal emirlerde ara
         open_orders = self.client.get_open_orders(symbol)
         for o in open_orders:
             if str(o["id"]) == str(order_id):
                 return o.get("status", "open")
-
-        # 2. Standart emir geçmişinde ara (limit emirler buraya düşer)
+    
+        # 2. Normal emir geçmişinde ara
         try:
             order = self.client.get_order(symbol, order_id)
             if order:
                 return order.get("status", "unknown")
         except Exception:
             pass
-
-        # 3. Stop emirleri için tüm emir geçmişinde ara
+    
+        # 3. Algo (stop-market) emirlerde ara
         try:
             raw_symbol = symbol.replace("/", "").replace(":USDT", "")
-            result = self.client.client.fapiPrivateGetAllOrders({
-                "symbol":  raw_symbol,
-                "orderId": order_id,
-                "limit":   1,
+            algo_orders = self.client.client.fapiPrivateGetAllAlgoOrders({
+                "symbol": raw_symbol,
             })
-            if result:
-                status = result[0].get("status", "unknown")
-                mapping = {
-                    "FILLED":   "closed",
-                    "CANCELED": "canceled",
-                    "NEW":      "open",
-                    "EXPIRED":  "expired",
-                }
-                return mapping.get(status, status.lower())
+            mapping = {
+                "NEW":      "open",
+                "WORKING":  "open",
+                "FILLED":   "closed",
+                "CANCELED": "canceled",
+                "EXPIRED":  "expired",
+            }
+            for o in algo_orders:
+                if str(o["algoId"]) == str(order_id):
+                    status = o.get("algoStatus", "unknown")
+                    return mapping.get(status, status.lower())
         except Exception:
             pass
-
+    
         return "not_found"
 
     def cancel_tp_sl_orders(self, symbol: str, oco_pair: Dict) -> None:
