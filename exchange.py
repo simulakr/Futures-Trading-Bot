@@ -215,13 +215,27 @@ class BinanceFuturesClient:
             return None
 
     def cancel_order(self, symbol: str, order_id: str) -> bool:
-        """Emri iptal eder."""
+        """Normal ve algo (stop-market) emirleri iptal eder."""
         try:
-            self.client.cancel_order(order_id, symbol)
-            logger.info("Emir iptal edildi: %s / %s", symbol, order_id)
+            # Önce normal emir olarak dene
+            try:
+                self.client.cancel_order(order_id, symbol)
+                logger.info("Emir iptal edildi: %s / %s", symbol, order_id)
+                return True
+            except Exception:
+                pass
+    
+            # Başarısız olursa algo emir olarak dene
+            raw_symbol = symbol.replace("/", "").replace(":USDT", "")
+            self.client.fapiPrivateDeleteAlgoOrder({
+                "symbol": raw_symbol,
+                "algoId": order_id,
+            })
+            logger.info("Algo emir iptal edildi: %s / %s", symbol, order_id)
             return True
+    
         except ccxt.OrderNotFound:
-            logger.debug("Emir zaten yok (tetiklenmiş olabilir): %s / %s", symbol, order_id)
+            logger.debug("Emir zaten yok: %s / %s", symbol, order_id)
             return True
         except Exception as exc:
             logger.error("Emir iptal hatası (%s / %s): %s", symbol, order_id, exc)
