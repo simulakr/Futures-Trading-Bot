@@ -254,7 +254,7 @@ class PositionManager:
         """
         positions = self.client.get_open_positions()
         for pos in positions:
-            symbol    = pos["symbol"]
+            symbol = pos["symbol"].replace("/", "").replace(":USDT", "")
             contracts = float(pos.get("contracts", 0) or 0)
             if contracts == 0:
                 continue
@@ -283,27 +283,41 @@ class PositionManager:
                 logger.warning("%s pozisyon yüklendi ama TP/SL emirleri bulunamadı", symbol)
 
     def _find_tp_sl_orders(self, symbol: str, direction: str, quantity: float) -> Optional[Dict]:
-        """Açık emirler arasından TP (limit) ve SL (stop_market) emirlerini eşleştirir."""
-        orders    = self.client.get_open_orders(symbol)
         close_side = "sell" if direction == "LONG" else "buy"
-
+        raw_symbol = symbol.replace("/", "").replace(":USDT", "")
+    
         tp_id = sl_id = None
+    
+        # TP → normal açık emirlerde ara (limit)
+        orders = self.client.get_open_orders(symbol)
         for order in orders:
             if order.get("side") != close_side:
                 continue
             amt = float(order.get("amount", 0) or 0)
             if abs(amt - quantity) > quantity * 0.01:
                 continue
-
-            order_type = order.get("type", "")
-            if order_type == "limit" and order.get("reduceOnly"):
+            if order.get("type") == "limit":
                 tp_id = order["id"]
-            elif order_type == "stop_market" and order.get("reduceOnly"):
-                sl_id = order["id"]
-
+    
+        # SL → algo emirlerde ara (stop_market)
+        try:
+            algo_orders = self.client.client.fapiPrivateGetAllAlgoOrders({
+                "symbol": raw_symbol,
+            })
+            for o in algo_orders:
+                if o.get("algoStatus") != "NEW":
+                    continue
+                if o.get("side", "").lower() != close_side:
+                    continue
+                if abs(float(o.get("quantity", 0)) - quantity) > quantity * 0.01:
+                    continue
+                sl_id = o["algoId"]
+        except Exception as exc:
+            logger.error("%s algo emirler alınamadı: %s", symbol, exc)
+    
         if tp_id and sl_id:
             return {"symbol": symbol, "tp_order_id": tp_id, "sl_order_id": sl_id, "active": True}
-
+    
         logger.warning("%s TP/SL emirleri eksik — TP: %s | SL: %s", symbol, tp_id, sl_id)
         return None
 
