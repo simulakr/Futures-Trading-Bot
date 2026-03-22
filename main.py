@@ -41,6 +41,29 @@ class TradingBot:
 
     # ─── Zamanlama ────────────────────────────────────────────────────────────
 
+    def _is_trading_hours(self) -> bool:
+        """
+        GMT+3'e göre Cuma 23:59 - Pazartesi 00:00 arası False döner.
+        """
+        server_ms = self.client.get_server_time_ms()
+        now = datetime.datetime.fromtimestamp(
+            server_ms / 1000,
+            tz=datetime.timezone(datetime.timedelta(hours=3))
+        )
+        weekday = now.weekday()  # 0=Pazartesi, 4=Cuma, 5=Cumartesi, 6=Pazar
+        
+        # Cumartesi tüm gün
+        if weekday == 5:
+            return False
+        # Pazar 00:00'dan önce (yani Pazartesi 00:00'a kadar)
+        if weekday == 6:
+            return False
+        # Cuma 23:59 ve sonrası
+        if weekday == 4 and now.hour == 23 and now.minute >= 59:
+            return False
+        
+        return True
+    
     def _wait_until_next_candle(self) -> None:
         """
         Binance sunucu saatiyle 15 dakikalık mum kapanışını bekler.
@@ -145,6 +168,12 @@ class TradingBot:
 
         while True:
             try:
+                if not self._is_trading_hours():
+                    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3)))
+                    logger.info("İşlem saati dışı (%s) — 60 saniye bekleniyor", now.strftime("%A %H:%M"))
+                    time.sleep(60)
+                    continue
+                    
                 self._wait_until_next_candle()
                 start = time.time()
 
