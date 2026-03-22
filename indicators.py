@@ -374,6 +374,24 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
     df["pivot_goup_breakout_2x"]  = False
     df["pivot_goup_breakdown_2x"] = False
 
+    df.loc[
+        df["low_confirmed_2x"].astype(bool) &
+        (df["low_structure_2x"]  == "HL") &
+        (df["high_structure_2x"] == "HH") &
+        df["high_pivot_ff_2x"].notna() &
+        (df["close"] > df["high_pivot_ff_2x"]) & atr_ok,
+        "pivot_goup_breakout_2x",
+    ] = True
+
+    df.loc[
+        df["high_confirmed_2x"].astype(bool) &
+        (df["high_structure_2x"] == "LH") &
+        (df["low_structure_2x"]  == "LL") &
+        df["low_pivot_ff_2x"].notna() &
+        (df["close"] < df["low_pivot_ff_2x"]) & atr_ok,
+        "pivot_goup_breakdown_2x",
+    ] = True
+
     goup_long = (
         (df["low_structure_2x"]  == "HL") &
         long_shift_ok &
