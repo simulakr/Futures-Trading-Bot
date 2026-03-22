@@ -24,10 +24,10 @@ ATR_RANGES = {
 # ─── Z Göstergesi: atr.quantile(0.35 - 0.65) ────────────────────────────────────────────────────────────
 Z_RANGES = {
     'BTCUSDT': (0.20, 0.309),
-    'ETHUSDT': (0.325, 0.523),
-    'SOLUSDT': (0.399, 0.622),
-    'DOGEUSDT': (0.432, 0.698),
-    'XRPUSDT': (0.341, 0.604),
+    'ETHUSDT': (0.325, 0.466),
+    'SOLUSDT': (0.399, 0.555),
+    'DOGEUSDT': (0.432, 0.621),
+    'XRPUSDT': (0.341, 0.525),
 }
 
 Z_INDICATOR_PARAMS = {
@@ -67,5 +67,5 @@ SYMBOL_SETTINGS = {
 }
 
 # ─── TP / SL Çarpanları ───────────────────────────────────────────────────────
-TP_ATR_MULTIPLIER = 2
-SL_ATR_MULTIPLIER = 3
+TP_ATR_MULTIPLIER = 2.5
+SL_ATR_MULTIPLIER = 2.5
