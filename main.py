@@ -170,8 +170,8 @@ class TradingBot:
             try:
                 if not self._is_trading_hours():
                     now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3)))
-                    logger.info("İşlem saati dışı (%s) — 60 saniye bekleniyor", now.strftime("%A %H:%M"))
-                    time.sleep(60)
+                    logger.info("İşlem saati dışı (%s) — 15 dk bekleniyor", now.strftime("%A %H:%M"))
+                    time.sleep(900)
                     continue
                     
                 self._wait_until_next_candle()
