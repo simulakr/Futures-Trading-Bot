@@ -4,12 +4,12 @@ from typing import Dict, Optional
 
 from exchange import BinanceFuturesClient
 from exit_strategies import ExitStrategy
-from config import DEFAULT_RISK_USDT, DEFAULT_LEVERAGE, SYMBOL_SETTINGS, QUANTITY_PRECISION
+from config import DEFAULT_RISK_USDT, DEFAULT_LEVERAGE, SYMBOL_SETTINGS, QUANTITY_PRECISION, SL_ATR_MULTIPLIER
 
 logger = logging.getLogger(__name__)
 
 # SL çarpanı (pozisyon büyüklüğü hesabında payda)
-_SL_MULT = 2.5
+_SL_MULT = SL_ATR_MULTIPLIER
 
 
 class PositionManager:
