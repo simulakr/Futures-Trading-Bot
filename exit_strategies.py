@@ -149,12 +149,13 @@ class ExitStrategy:
                 "symbol": raw_symbol,
             })
             mapping = {
-                "NEW":      "open",
-                "WORKING":  "open",
-                "FILLED":   "closed",
-                "CANCELED": "canceled",
-                "EXPIRED":  "expired",
-            }
+                        "NEW":      "open",
+                        "WORKING":  "open",
+                        "FILLED":   "closed",
+                        "FINISHED": "closed",  # ← bunu ekle
+                        "CANCELED": "canceled",
+                        "EXPIRED":  "expired",
+                    }
             for o in algo_orders:
                 if str(o["algoId"]) == str(order_id):
                     status = o.get("algoStatus", "unknown")
