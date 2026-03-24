@@ -234,7 +234,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
     df[["nw", "nw_upper", "nw_lower"]] = nw
 
     # ATR ZigZag (2x ve 3x)
-    df = calculate_atr_zigzag(df, atr_col="z", atr_mult=2.0, suffix="_2x")
+    df = calculate_atr_zigzag(df, atr_col="z", atr_mult=1.5, suffix="_2x")
     df = calculate_atr_zigzag(df, atr_col="z", atr_mult=3.0, suffix="_3x")
 
     # Market Yapısı
