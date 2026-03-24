@@ -9,7 +9,7 @@ from config import DEFAULT_RISK_USDT, DEFAULT_LEVERAGE, SYMBOL_SETTINGS, QUANTIT
 logger = logging.getLogger(__name__)
 
 # SL çarpanı (pozisyon büyüklüğü hesabında payda)
-_SL_MULT = 3
+_SL_MULT = 2.5
 
 
 class PositionManager:
