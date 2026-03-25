@@ -126,16 +126,19 @@ class TradingBot:
 
         return results
 
-    def _generate_signals(self, all_data: Dict[str, Optional[Dict]]) -> Dict[str, Optional[str]]:
-        """Veriden LONG/SHORT/None sinyalleri üretir."""
+    def _generate_signals(self, all_data):
         signals = {}
         for symbol, data in all_data.items():
             if not data:
                 signals[symbol] = None
             elif check_long_entry(data, symbol):
                 signals[symbol] = "LONG"
+                logger.info("%s LONG sinyali | breakout_2x: %s | goup_breakout_2x: %s",
+                    symbol, data.get('pivot_go_breakout_2x'), data.get('pivot_goup_breakout_2x'))
             elif check_short_entry(data, symbol):
                 signals[symbol] = "SHORT"
+                logger.info("%s SHORT sinyali | breakdown_2x: %s | goup_breakdown_2x: %s",
+                    symbol, data.get('pivot_go_breakdown_2x'), data.get('pivot_goup_breakdown_2x'))
             else:
                 signals[symbol] = None
         return signals
