@@ -333,13 +333,13 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
 
     long_conditions = [
         (df["high_pivot_ff_2x"].notna() & (df["close"].shift(i) < df["high_pivot_ff_2x"])).fillna(False)
-        for i in range(1, 11)
+        for i in range(1, 6)
     ]
     long_shift_ok = pd.concat(long_conditions, axis=1).all(axis=1)
 
     short_conditions = [
         (df["low_pivot_ff_2x"].notna() & (df["close"].shift(i) > df["low_pivot_ff_2x"])).fillna(False)
-        for i in range(1, 11)
+        for i in range(1, 6)
     ]
     short_shift_ok = pd.concat(short_conditions, axis=1).all(axis=1)
 
