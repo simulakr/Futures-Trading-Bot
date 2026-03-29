@@ -23,11 +23,11 @@ ATR_RANGES = {
 
 # ─── Z Göstergesi: atr.quantile(0.35 - 0.65) ────────────────────────────────────────────────────────────
 Z_RANGES = {
-    'BTCUSDT': (0.181, 0.272),
-    'ETHUSDT': (0.325, 0.466),
-    'SOLUSDT': (0.399, 0.555),
-    'DOGEUSDT': (0.432, 0.621),
-    'XRPUSDT': (0.341, 0.525),
+    'BTCUSDT': (0.2109, 0.309),
+    'ETHUSDT': (0.372, 0.523),
+    'SOLUSDT': (0.451, 0.622),
+    'DOGEUSDT': (0.498, 0.698),
+    'XRPUSDT': (0.397, 0.604),
 }
 
 Z_INDICATOR_PARAMS = {
