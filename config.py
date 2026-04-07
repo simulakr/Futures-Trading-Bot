@@ -9,13 +9,13 @@ BINANCE_API_SECRET = os.getenv("BINANCE_API_SECRET")
 TESTNET            = os.getenv("TESTNET", "false").lower() == "true"
 
 # ─── Semboller & Zaman Aralığı ────────────────────────────────────────────────
-SYMBOLS  = [ "ETHUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT"] #"BTCUSDT","BNBUSDT"
+SYMBOLS  = [ "ETHUSDC", "SOLUSDT", "XRPUSDT", "DOGEUSDT"] #"BTCUSDT","BNBUSDT"
 INTERVAL = "15m"
 
 # ─── Percent ATR Filtreleri ───────────────────────────────────────────────────
 ATR_RANGES = {
     "BTCUSDT":  (0.173, 0.645),
-    "ETHUSDT":  (0.363, 0.990),
+    "ETHUSDC":  (0.363, 0.990),
     "SOLUSDT":  (0.423, 1.176),
     "XRPUSDT":  (0.363, 1.378),
     "DOGEUSDT": (0.465, 1.306),
@@ -24,7 +24,7 @@ ATR_RANGES = {
 # ─── Z Göstergesi: atr.quantile(0.25 - 0.55) ────────────────────────────────────────────────────────────
 Z_RANGES = {
     'BTCUSDT': (0.181, 0.272),
-    'ETHUSDT': (0.325, 0.466),
+    'ETHUSDC': (0.325, 0.466),
     'SOLUSDT': (0.399, 0.555),
     'DOGEUSDT': (0.432, 0.621),
     'XRPUSDT': (0.341, 0.525),
@@ -38,7 +38,7 @@ Z_INDICATOR_PARAMS = {
 # ─── Pozisyon Büyüklüğü ───────────────────────────────────────────────────────
 QUANTITY_PRECISION = {
     "BTCUSDT":  3,
-    "ETHUSDT":  2,
+    "ETHUSDC":  2,
     "SOLUSDT":  1,
     "XRPUSDT":  0,
     "DOGEUSDT": 0,
@@ -46,7 +46,7 @@ QUANTITY_PRECISION = {
 
 PRICE_PRECISION = {
     "BTCUSDT":  2,
-    "ETHUSDT":  2,
+    "ETHUSDC":  2,
     "SOLUSDT":  3,
     "XRPUSDT":  4,
     "DOGEUSDT": 5,
@@ -60,7 +60,7 @@ DEFAULT_RISK_USDT = 20
 
 SYMBOL_SETTINGS = {
     "BTCUSDT":  {"risk": 20, "leverage": 25},
-    "ETHUSDT":  {"risk": 20, "leverage": 25},
+    "ETHUSDC":  {"risk": 20, "leverage": 25},
     "SOLUSDT":  {"risk": 20, "leverage": 25},
     "XRPUSDT":  {"risk": 20, "leverage": 25},
     "DOGEUSDT": {"risk": 20, "leverage": 25},
