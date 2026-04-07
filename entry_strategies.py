@@ -1,7 +1,7 @@
 from typing import Dict, Any, Tuple
 
-LONG_PAIRS_2X = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT','XRPUSDT','DOGEUSDT']
-SHORT_PAIRS_2X = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT','XRPUSDT','DOGEUSDT']
+LONG_PAIRS_2X = ['BTCUSDC', 'ETHUSDC', 'SOLUSDT','XRPUSDT','DOGEUSDT']
+SHORT_PAIRS_2X = ['BTCUSDC', 'ETHUSDC', 'SOLUSDT','XRPUSDT','DOGEUSDT']
 
 def check_long_entry(row: Dict[str, Any], symbol: str) -> bool:
     if symbol in LONG_PAIRS_2X:
