@@ -77,7 +77,7 @@ class BinanceFuturesClient:
         self,
         symbols:  List[str],
         interval: str = "15m",
-        limit:    int = 500,
+        limit:    int = 700,
     ) -> Dict[str, Optional[pd.DataFrame]]:
         """Birden fazla sembol için veri paralel çeker."""
         with ThreadPoolExecutor(max_workers=len(symbols)) as executor:
