@@ -54,7 +54,7 @@ class BinanceFuturesClient:
         self,
         symbol:           str,
         interval:         str = "15m",
-        limit:            int = 500,
+        limit:            int = 700,
         convert_to_float: bool = True,
     ) -> Optional[pd.DataFrame]:
         """
