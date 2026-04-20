@@ -13,7 +13,7 @@ SYMBOLS  = [ "ETHUSDC", "SOLUSDT", "XRPUSDT", "DOGEUSDT"] #"BTCUSDT","BNBUSDT"
 INTERVAL = "15m"
 
 # ─── Percent ATR Filtreleri ───────────────────────────────────────────────────
-ATR_RANGES = {
+atr_ranges = {
     "BTCUSDT":  (0.173, 0.645),
     "ETHUSDC":  (0.363, 0.990),
     "SOLUSDT":  (0.423, 1.176),
