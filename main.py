@@ -1,6 +1,7 @@
 import logging
 import time
 import datetime
+import pandas as pd
 from typing import Dict, Optional
 
 from config import SYMBOLS, INTERVAL, SYMBOL_SETTINGS, DEFAULT_LEVERAGE
@@ -29,60 +30,55 @@ class TradingBot:
         self.interval         = INTERVAL
 
         self._initialize_account()
+        self.client.initialize_cache(self.symbols, self.interval)
         self.position_manager.load_existing_positions()
 
     # ─── Hesap Kurulumu ───────────────────────────────────────────────────────
 
     def _initialize_account(self) -> None:
-        """Her sembol için kaldıraç ayarlar."""
+        """Her sembol için margin tipi ve kaldıraç ayarlar."""
         for symbol in self.symbols:
             leverage = SYMBOL_SETTINGS.get(symbol, {}).get("leverage", DEFAULT_LEVERAGE)
+            self.client.set_margin_type(symbol, "ISOLATED")
             self.client.set_leverage(symbol, leverage)
 
     # ─── Zamanlama ────────────────────────────────────────────────────────────
 
     def _is_trading_hours(self) -> bool:
-        """
-        GMT+3'e göre Cuma 23:59 - Pazartesi 00:00 arası False döner.
-        """
+        """GMT+3'e göre Cuma 23:59 - Pazartesi 00:00 arası False döner."""
         server_ms = self.client.get_server_time_ms()
         now = datetime.datetime.fromtimestamp(
             server_ms / 1000,
             tz=datetime.timezone(datetime.timedelta(hours=3))
         )
-        weekday = now.weekday()  # 0=Pazartesi, 4=Cuma, 5=Cumartesi, 6=Pazar
-        
-        # Cumartesi tüm gün
+        weekday = now.weekday()
         if weekday == 5:
             return False
-        # Pazar 00:00'dan önce (yani Pazartesi 00:00'a kadar)
         if weekday == 6:
             return False
-        # Cuma 23:59 ve sonrası
         if weekday == 4 and now.hour == 23 and now.minute >= 59:
             return False
-        
         return True
-    
+
     def _wait_until_next_candle(self) -> None:
         """
         Binance sunucu saatiyle 15 dakikalık mum kapanışını bekler.
-        Hedef: XX:14:59, XX:29:59, XX:44:59, XX:59:59
+        Hedef: XX:15:01, XX:30:01, XX:45:01, XX:00:01
+        Mum kapandıktan 1 saniye sonra veri çeker.
         """
         try:
-            server_ms   = self.client.get_server_time_ms()
-            current     = datetime.datetime.fromtimestamp(server_ms / 1000, tz=datetime.timezone.utc)
-            minute      = current.minute
+            server_ms = self.client.get_server_time_ms()
+            current   = datetime.datetime.fromtimestamp(server_ms / 1000, tz=datetime.timezone.utc)
+            minute    = current.minute
 
-            # Bir sonraki çeyrek dakikayı bul
-            for target in [14, 29, 44, 59]:
-                if minute < target:
-                    target_minute = target
+            for target in [15, 30, 45, 0]:
+                if target == 0:
+                    target_time = current.replace(minute=0, second=1, microsecond=0) + datetime.timedelta(hours=1)
                     break
-            else:
-                target_minute = 14  # Bir sonraki saatin ilk çeyreği
+                if minute < target:
+                    target_time = current.replace(minute=target, second=1, microsecond=0)
+                    break
 
-            target_time = current.replace(minute=target_minute, second=59, microsecond=0)
             if target_time <= current:
                 target_time += datetime.timedelta(hours=1)
 
@@ -109,8 +105,12 @@ class TradingBot:
     # ─── Veri & Sinyal ────────────────────────────────────────────────────────
 
     def _fetch_market_data(self) -> Dict[str, Optional[Dict]]:
-        """Tüm semboller için OHLCV + indikatör hesaplar."""
+        """
+        Cache'i günceller, kapanmamış mumu atar,
+        indikatör hesaplar ve son kapanmış barı döndürür.
+        """
         all_ohlcv = self.client.get_multiple_ohlcv(self.symbols, self.interval)
+        now       = pd.Timestamp.utcnow()
         results   = {}
 
         for symbol, df in all_ohlcv.items():
@@ -118,6 +118,11 @@ class TradingBot:
                 results[symbol] = None
                 continue
             try:
+                df = df[df.index < now]  # kapanmamış mumu at
+                if df.empty:
+                    logger.warning("%s filtre sonrası veri kalmadı", symbol)
+                    results[symbol] = None
+                    continue
                 df = calculate_indicators(df, symbol)
                 results[symbol] = df.iloc[-1].to_dict()
             except Exception as exc:
@@ -126,7 +131,7 @@ class TradingBot:
 
         return results
 
-    def _generate_signals(self, all_data):
+    def _generate_signals(self, all_data: Dict[str, Optional[Dict]]) -> Dict[str, Optional[str]]:
         signals = {}
         for symbol, data in all_data.items():
             if not data:
@@ -150,7 +155,7 @@ class TradingBot:
         signals:  Dict[str, Optional[str]],
         all_data: Dict[str, Optional[Dict]],
     ) -> None:
-        """Sinyallere göre pozisyon açar (PositionManager senaryoları yönetir)."""
+        """Sinyallere göre pozisyon açar. PositionManager tüm senaryoları yönetir."""
         for symbol, signal in signals.items():
             if not signal or not all_data.get(symbol):
                 continue
@@ -176,7 +181,7 @@ class TradingBot:
                     logger.info("İşlem saati dışı (%s) — 15 dk bekleniyor", now.strftime("%A %H:%M"))
                     time.sleep(900)
                     continue
-                    
+
                 self._wait_until_next_candle()
                 start = time.time()
 
