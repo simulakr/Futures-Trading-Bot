@@ -183,6 +183,10 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
     # ATR filtre maskesi
     atr_ok = (atr_low < df["pct_atr"]) & (df["pct_atr"] < atr_high)
 
+    # Breakout Condition
+    long_break_condition = (df['high_pivot_filled_2x'] + 0.1*df['z'])
+    short_break_condition = (df['low_pivot_filled_2x'] - 0.1*df['z']) 
+
     # ─── Ortak shift koşulları (_2x) ─────────────────────────────────────────
 
     long_shift_ok  = _build_shift_ok(df, "close", "high_pivot_ff_2x", "long",  n=5)
@@ -199,7 +203,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         (df["low_structure_2x"]  == "HL") &
         (df["high_structure_2x"] != "HH") &
         df["high_pivot_ff_2x"].notna() &
-        (df["close"] > df["high_pivot_ff_2x"]) & atr_ok,
+        (df["close"] > long_break_condition) & atr_ok,
         "pivot_go_breakout_2x",
     ] = True
 
@@ -208,7 +212,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         (df["high_structure_2x"] == "LH") &
         (df["low_structure_2x"]  != "LL") &
         df["low_pivot_ff_2x"].notna() &
-        (df["close"] < df["low_pivot_ff_2x"]) & atr_ok,
+        (df["close"] < short_break_condition) & atr_ok,
         "pivot_go_breakdown_2x",
     ] = True
 
@@ -217,7 +221,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         long_shift_ok &
         (df["high_structure_2x"] != "HH") &
         df["high_pivot_ff_2x"].notna() &
-        (df["close"] > df["high_pivot_ff_2x"]) &
+        (df["close"] > long_break_condition) &
         atr_ok & (~df["pivot_go_breakout_2x"]),
         "pivot_go_breakout_2x",
     ] = True
@@ -227,7 +231,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         short_shift_ok &
         (df["high_structure_2x"] == "LH") &
         df["low_pivot_ff_2x"].notna() &
-        (df["close"] < df["low_pivot_ff_2x"]) &
+        (df["close"] < short_break_condition) &
         atr_ok & (~df["pivot_go_breakdown_2x"]),
         "pivot_go_breakdown_2x",
     ] = True
@@ -243,7 +247,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         (df["low_structure_2x"]  == "HL") &
         (df["high_structure_2x"] == "HH") &
         df["high_pivot_ff_2x"].notna() &
-        (df["close"] > df["high_pivot_ff_2x"]) & atr_ok,
+        (df["close"] > long_break_condition) & atr_ok,
         "pivot_goup_breakout_2x",
     ] = True
 
@@ -252,7 +256,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         (df["high_structure_2x"] == "LH") &
         (df["low_structure_2x"]  == "LL") &
         df["low_pivot_ff_2x"].notna() &
-        (df["close"] < df["low_pivot_ff_2x"]) & atr_ok,
+        (df["close"] < short_break_condition) & atr_ok,
         "pivot_goup_breakdown_2x",
     ] = True
 
@@ -261,7 +265,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         long_shift_ok &
         (df["high_structure_2x"] == "HH") &
         df["high_pivot_ff_2x"].notna() &
-        (df["close"] > df["high_pivot_ff_2x"]) &
+        (df["close"] > long_break_condition) &
         atr_ok & (~df["pivot_goup_breakout_2x"]),
         "pivot_goup_breakout_2x",
     ] = True
@@ -271,7 +275,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         short_shift_ok &
         (df["high_structure_2x"] == "LH") &
         df["low_pivot_ff_2x"].notna() &
-        (df["close"] < df["low_pivot_ff_2x"]) &
+        (df["close"] < short_break_condition) &
         atr_ok & (~df["pivot_goup_breakdown_2x"]),
         "pivot_goup_breakdown_2x",
     ] = True
@@ -287,7 +291,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         (df["low_structure_2x"]  == "LL") &
         (df["high_structure_2x"] == "LH") &
         df["high_pivot_ff_2x"].notna() &
-        (df["close"] > df["high_pivot_ff_2x"]) & atr_ok,
+        (df["close"] > long_break_condition) & atr_ok,
         "pivot_choch_breakout_2x",
     ] = True
 
@@ -296,7 +300,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         (df["high_structure_2x"] == "HH") &
         (df["low_structure_2x"]  == "HL") &
         df["low_pivot_ff_2x"].notna() &
-        (df["close"] < df["low_pivot_ff_2x"]) & atr_ok,
+        (df["close"] < short_break_condition) & atr_ok,
         "pivot_choch_breakdown_2x",
     ] = True
 
@@ -305,7 +309,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         long_shift_ok &
         (df["high_structure_2x"] == "LH") &
         df["high_pivot_ff_2x"].notna() &
-        (df["close"] > df["high_pivot_ff_2x"]) &
+        (df["close"] > long_break_condition) &
         atr_ok & (~df["pivot_choch_breakout_2x"]),
         "pivot_choch_breakout_2x",
     ] = True
@@ -315,7 +319,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         short_shift_ok &
         (df["high_structure_2x"] == "HH") &
         df["low_pivot_ff_2x"].notna() &
-        (df["close"] < df["low_pivot_ff_2x"]) &
+        (df["close"] < short_break_condition) &
         atr_ok & (~df["pivot_choch_breakdown_2x"]),
         "pivot_choch_breakdown_2x",
     ] = True
@@ -331,7 +335,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         (df["low_structure_2x"]  == "LL") &
         (df["high_structure_2x"] == "HH") &
         df["high_pivot_ff_2x"].notna() &
-        (df["close"] > df["high_pivot_ff_2x"]) & atr_ok,
+        (df["close"] > long_break_condition) & atr_ok,
         "pivot_hhll_breakout_2x",
     ] = True
 
@@ -340,7 +344,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         (df["high_structure_2x"] == "HH") &
         (df["low_structure_2x"]  == "LL") &
         df["low_pivot_ff_2x"].notna() &
-        (df["close"] < df["low_pivot_ff_2x"]) & atr_ok,
+        (df["close"] < short_break_condition) & atr_ok,
         "pivot_hhll_breakdown_2x",
     ] = True
 
@@ -349,7 +353,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         long_shift_ok &
         (df["high_structure_2x"] == "HH") &
         df["high_pivot_ff_2x"].notna() &
-        (df["close"] > df["high_pivot_ff_2x"]) &
+        (df["close"] > long_break_condition) &
         atr_ok & (~df["pivot_hhll_breakout_2x"]),
         "pivot_hhll_breakout_2x",
     ] = True
@@ -359,7 +363,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         short_shift_ok &
         (df["high_structure_2x"] == "HH") &
         df["low_pivot_ff_2x"].notna() &
-        (df["close"] < df["low_pivot_ff_2x"]) &
+        (df["close"] < short_break_condition) &
         atr_ok & (~df["pivot_hhll_breakdown_2x"]),
         "pivot_hhll_breakdown_2x",
     ] = True
@@ -373,21 +377,21 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
     df.loc[
         df["low_confirmed_2x"].astype(bool) &
         df["high_pivot_ff_2x"].notna() &
-        (df["close"] > df["high_pivot_ff_2x"]) & atr_ok,
+        (df["close"] > long_break_condition) & atr_ok,
         "pivot_breakout_2x",
     ] = True
 
     df.loc[
         df["high_confirmed_2x"].astype(bool) &
         df["low_pivot_ff_2x"].notna() &
-        (df["close"] < df["low_pivot_ff_2x"]) & atr_ok,
+        (df["close"] < short_break_condition) & atr_ok,
         "pivot_breakdown_2x",
     ] = True
 
     df.loc[
         long_shift_ok &
         df["high_pivot_ff_2x"].notna() &
-        (df["close"] > df["high_pivot_ff_2x"]) &
+        (df["close"] > long_break_condition) &
         atr_ok & (~df["pivot_breakout_2x"]),
         "pivot_breakout_2x",
     ] = True
@@ -395,7 +399,7 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
     df.loc[
         short_shift_ok &
         df["low_pivot_ff_2x"].notna() &
-        (df["close"] < df["low_pivot_ff_2x"]) &
+        (df["close"] < short_break_condition) &
         atr_ok & (~df["pivot_breakdown_2x"]),
         "pivot_breakdown_2x",
     ] = True
