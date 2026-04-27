@@ -183,15 +183,17 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
     # ATR filtre maskesi
     atr_ok = (atr_low < df["pct_atr"]) & (df["pct_atr"] < atr_high)
 
-    # Breakout Condition
-    long_break_condition = (df['high_pivot_filled_2x'] + 0.1*df['z'])
-    short_break_condition = (df['low_pivot_filled_2x'] - 0.1*df['z']) 
+   
 
     # ─── Ortak shift koşulları (_2x) ─────────────────────────────────────────
 
     long_shift_ok  = _build_shift_ok(df, "close", "high_pivot_ff_2x", "long",  n=5)
     short_shift_ok = _build_shift_ok(df, "close", "low_pivot_ff_2x",  "short", n=5)
-
+     
+    # Breakout Condition
+    long_break_condition = (df['high_pivot_ff_2x'] + 0.1*df['z'])
+    short_break_condition = (df['low_pivot_ff_2x'] - 0.1*df['z']) 
+    
     # ─── pivot_go_breakout (_2x) ──────────────────────────────────────────────
     # Yapı: HL low + high_structure != HH + pivot geçişi
 
