@@ -1,2 +1,3 @@
-# GO UP BREAKOUT 
-* HHHL Structure
+# BINANCE
+# NO GO UP BREAKOUT 
+* 2.25-2.25
