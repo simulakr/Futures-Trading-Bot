@@ -236,7 +236,7 @@ class PositionManager:
     def _monitor_oco_orders(self) -> None:
         """TP/SL tetiklenip tetiklenmediğini kontrol eder; tetiklendiyse pozisyonu siler."""
         for symbol, position in list(self.active_positions.items()):
-            if "oco_pair" not in position or not position["oco_pair"].get("active"):
+            if "oco_pair" not in position or not position.get("oco_pair") or not position["oco_pair"].get("active"):
                 continue
 
             result = self.exit_strategy.check_and_cancel_oco(position["oco_pair"])
@@ -254,7 +254,9 @@ class PositionManager:
         """
         positions = self.client.get_open_positions()
         for pos in positions:
-            symbol = pos["symbol"].replace("/", "").replace(":USDT", "")
+            raw = pos["symbol"]
+            # BTCUSDC:USDC → BTCUSDC, SOLUSDT:USDT → SOLUSDT
+            symbol = raw.split(":")[0]
             contracts = float(pos.get("contracts", 0) or 0)
             if contracts == 0:
                 continue
