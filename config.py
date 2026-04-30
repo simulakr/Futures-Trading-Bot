@@ -14,8 +14,8 @@ INTERVAL = "15m"
 
 # ─── Percent ATR Filtreleri ───────────────────────────────────────────────────
 ATR_RANGES = {'SOLUSDT':  (0.401, 1.176), 
-              'BTCUSDT': (0.179, 0.648), 
-               'ETHUSDT':  (0.317, 0.990), 
+              'BTCUSDC': (0.179, 0.648), 
+               'ETHUSDC':  (0.317, 0.990), 
               'DOGEUSDT':  (0.421, 1.306), 
               'XRPUSDT':  (0.340, 1.378),  
               }
