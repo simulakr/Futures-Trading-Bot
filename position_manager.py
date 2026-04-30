@@ -254,9 +254,9 @@ class PositionManager:
         """
         positions = self.client.get_open_positions()
         for pos in positions:
-            raw = pos["symbol"]
             # BTCUSDC:USDC → BTCUSDC, SOLUSDT:USDT → SOLUSDT
-            symbol = raw.split(":")[0]
+            raw = pos["symbol"]
+            symbol = raw.split(":")[0].replace("/", "")
             contracts = float(pos.get("contracts", 0) or 0)
             if contracts == 0:
                 continue
