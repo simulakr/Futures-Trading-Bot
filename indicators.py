@@ -141,25 +141,6 @@ def add_market_structure(df: pd.DataFrame, suffix: str) -> pd.DataFrame:
 
     return df
 
-
-# ─── Shift Koşulu Yardımcısı ──────────────────────────────────────────────────
-
-def _build_shift_ok(df: pd.DataFrame, price_col: str, pivot_col: str, direction: str, n: int = 5) -> pd.Series:
-    """
-    Son n barda fiyatın pivot seviyesinin belirtilen tarafında kaldığını kontrol eder.
-    direction="long"  -> close.shift(i) < pivot_col (önceki barlar pivot altında)
-    direction="short" -> close.shift(i) > pivot_col (önceki barlar pivot üstünde)
-    """
-    conditions = []
-    for i in range(1, n + 1):
-        if direction == "long":
-            cond = (df[pivot_col].notna() & (df[price_col].shift(i) < df[pivot_col])).fillna(False)
-        else:
-            cond = (df[pivot_col].notna() & (df[price_col].shift(i) > df[pivot_col])).fillna(False)
-        conditions.append(cond)
-    return pd.concat(conditions, axis=1).all(axis=1)
-
-
 # ─── Ana Hesaplama ────────────────────────────────────────────────────────────
 
 def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
@@ -183,16 +164,17 @@ def calculate_indicators(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
     # ATR filtre maskesi
     atr_ok = (atr_low < df["pct_atr"]) & (df["pct_atr"] < atr_high)
 
-   
-
-    # ─── Ortak shift koşulları (_2x) ─────────────────────────────────────────
-
-    long_shift_ok  = _build_shift_ok(df, "close", "high_pivot_ff_2x", "long",  n=5)
-    short_shift_ok = _build_shift_ok(df, "close", "low_pivot_ff_2x",  "short", n=5)
-     
     # Breakout Condition
-    long_break_condition = (df['high_pivot_ff_2x'] + 0.1*df['z'])
-    short_break_condition = (df['low_pivot_ff_2x'] - 0.1*df['z']) 
+    long_break_condition  = df['high_pivot_ff_2x'] + 0.1 * df['z']
+    short_break_condition = df['low_pivot_ff_2x']  - 0.1 * df['z']
+    
+    long_shift_ok = pd.Series(True, index=df.index)
+    for i in range(1, 6):
+        long_shift_ok &= (df['close'].shift(i) < long_break_condition)
+    
+    short_shift_ok = pd.Series(True, index=df.index)
+    for i in range(1, 6):
+        short_shift_ok &= (df['close'].shift(i) > short_break_condition)
     
     # ─── pivot_go_breakout (_2x) ──────────────────────────────────────────────
     # Yapı: HL low + high_structure != HH + pivot geçişi
